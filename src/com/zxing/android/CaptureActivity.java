@@ -5,6 +5,7 @@ import java.util.Vector;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
@@ -16,6 +17,7 @@ import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
@@ -219,11 +221,23 @@ public class CaptureActivity extends Activity implements Callback {
 		byte [] rawbytes=rawResult.getRawBytes();
 		byte ID=(byte)(((rawbytes[1]<<4) & 0xf0) | ((rawbytes[2]>>4)&0x0f));
 		if(ID!=(byte)0x81){//0x81 respect its a ENote
+			Uri uri=Uri.parse(rawResult.getText());
+			
 			Intent intent=new Intent();
-			intent.setClass(CaptureActivity.this, ResultActivity.class);
-			intent.putExtra("data", rawResult.getText().getBytes());
-			intent.putExtra("datastring", rawResult.getText());
-			startActivity(intent);
+			intent.setAction("android.intent.action.VIEW");
+			intent.setData(uri);
+			//intent.setClass(CaptureActivity.this, ResultActivity.class);
+			//intent.putExtra("data", rawResult.getText().getBytes());
+			//intent.putExtra("datastring", rawResult.getText());
+			try {
+				startActivity(intent);
+			} catch (ActivityNotFoundException e) {
+				intent.setClass(CaptureActivity.this, ResultActivity.class);
+				intent.putExtra("data", rawResult.getText().getBytes());
+				intent.putExtra("datastring", rawResult.getText());
+				startActivity(intent);
+			}
+			
 			return;
 		}
 		
