@@ -117,6 +117,7 @@ public class CaptureActivity extends Activity implements Callback {
 		viewfinderView.setCameraManager(cameraManager);
 
 		SurfaceHolder surfaceHolder = surfaceView.getHolder();
+		mENote=null;
 		if (hasSurface) {
 			initCamera(surfaceHolder);
 		} else {
@@ -215,18 +216,18 @@ public class CaptureActivity extends Activity implements Callback {
 		QRFrame frame=new QRFrame();
 		//Log.i("111111",ENote.bytesToHexString(rawResult.getText().getBytes()));
 		Log.i("111111",ENote.bytesToHexString(rawResult.getRawBytes()));
+		byte [] rawbytes=rawResult.getRawBytes();
+		byte ID=(byte)(((rawbytes[1]<<4) & 0xf0) | ((rawbytes[2]>>4)&0x0f));
+		if(ID!=(byte)0x81){//0x81 respect its a ENote
+			Intent intent=new Intent();
+			intent.setClass(CaptureActivity.this, ResultActivity.class);
+			intent.putExtra("data", rawResult.getText().getBytes());
+			intent.putExtra("datastring", rawResult.getText());
+			startActivity(intent);
+			return;
+		}
 		
-//		QRFrame.Head frameHead=new QRFrame().new Head();
-//		byte[] dataBytes=rawResult.getText().getBytes();
-//		byte[] data=new byte[dataBytes.length-4];
-//		byte id=dataBytes[0];
-//		byte total=dataBytes[1];
-//		byte index=id;
-//		int length=(short)dataBytes[3] & 0x0ff;
-//		frameHead.setHead(id, total, index, length);
-//		System.arraycopy(dataBytes, 4, data, 0, length);
-//		frame=QRFrame.build(data, frameHead);
-		frame=QRFrame.parseRawBytes(rawResult.getRawBytes());
+		frame=QRFrame.parseRawBytes(rawbytes);
 		mENote.add(frame);
 		if(mENote.isComplete()){
 			Intent intent=new Intent();
